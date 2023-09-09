@@ -1,0 +1,6 @@
+{
+    "isShowWindow": false,
+    "ntpServer": "time.nist.gov",
+    "systemTimeCheckInterval": 120,
+    "timeOffset": 5
+}

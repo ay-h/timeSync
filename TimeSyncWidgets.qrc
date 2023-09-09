@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/TimeSyncWidgets">
+        <file>timsync.jfif</file>
+    </qresource>
+</RCC>
