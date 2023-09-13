@@ -49,12 +49,15 @@ CTimeSyncWidgets::CTimeSyncWidgets(QWidget *parent)
 	m_timer = new QTimer(this);
 	m_timer->setInterval(1000);
 	connect(m_timer, &QTimer::timeout, [&] {
+		// 最小化后不用更新时间
 		QDateTime currentTime = QDateTime::currentDateTime();
 		ui.label_4->setText(currentTime.toString("  yyyy-MM-dd HH:mm:ss"));
-
 	});
 
-	m_timer->start();
+	if (g_pConfig->IsShowWindow())
+	{
+		m_timer->start();
+	}	
 }
 
 CTimeSyncWidgets::~CTimeSyncWidgets()
@@ -97,21 +100,23 @@ void CTimeSyncWidgets::InitTrayIcon()
 			if (isMinimized())
 			{
 				// 已经最小化后正常显示
-				this->showNormal();  // 单击托盘图标时显示窗口
+				this->showNormal();      // 单击托盘图标时显示窗口
 				this->activateWindow(); //显示到最顶层
+				m_timer->start();  // 停止显示界面时间  
 			}
 			else if (!this->isVisible())
 			{
+				m_timer->start(); // 开始显示界面时间  
 				this->showNormal();  // 单击托盘图标时显示窗口
 				this->activateWindow(); //显示到最顶层
 				//this->show();
 			}
 			else
-			{
-				
+			{	
 				// 不是最小化时最小化到任务栏
 				showMinimized();
 				hide();  // 隐藏窗口
+				m_timer->stop();  // 停止显示界面时间  
 			}
 			
 		}
@@ -236,7 +241,6 @@ void CTimeSyncWidgets::StartSyncTime()
 void CTimeSyncWidgets::OnReceiveTime(const QDateTime& dateTime)
 {
     ui.label_2->setText(dateTime.toString("  yyyy-MM-dd HH:mm:ss"));
-
 	SetSysTime(dateTime);
 }
 
@@ -266,12 +270,14 @@ void CTimeSyncWidgets::changeEvent(QEvent* event)
 		{
 			hide();  // 隐藏窗口
 			m_trayIcon->show();  // 显示托盘图标
+			m_timer->stop(); // 停止显示界面时间
 		}
 		else
 		{
 			//m_trayIcon->hide();  // 隐藏托盘图标
 			show();  // 显示窗口
 			setWindowState(Qt::WindowNoState);  // 确保窗口不处于最小化状态
+			m_timer->start(); // 开始显示界面时间
 		}
 	}
 	QWidget::changeEvent(event);
@@ -281,4 +287,5 @@ void CTimeSyncWidgets::closeEvent(QCloseEvent* event)
 {
 	event->ignore();  // 忽略关闭事件
 	hide();  // 隐藏窗口到任务栏
+	m_timer->stop(); // 停止显示界面时间
 }
