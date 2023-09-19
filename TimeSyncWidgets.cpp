@@ -72,11 +72,6 @@ void CTimeSyncWidgets::InitTrayIcon()
 	m_trayIcon->setIcon(QIcon(":/TimeSyncWidgets/timsync.jfif"));
 	m_trayIcon->setToolTip("时间同步小程序");
 
-	// 创建菜单项
-	//QAction* showAction = new QAction("Show", this);
-	//connect(showAction, &QAction::triggered, this, &QtWidgetsApplication1::showNormal);
-
-
 	QAction* syncAction = new QAction("立即同步", this);
 	connect(syncAction, &QAction::triggered, this, &CTimeSyncWidgets::StartSyncTime);
 
@@ -102,11 +97,9 @@ void CTimeSyncWidgets::InitTrayIcon()
 				// 已经最小化后正常显示
 				this->showNormal();      // 单击托盘图标时显示窗口
 				this->activateWindow(); //显示到最顶层
-				m_timer->start();  // 停止显示界面时间  
 			}
 			else if (!this->isVisible())
 			{
-				m_timer->start(); // 开始显示界面时间  
 				this->showNormal();  // 单击托盘图标时显示窗口
 				this->activateWindow(); //显示到最顶层
 				//this->show();
@@ -116,7 +109,6 @@ void CTimeSyncWidgets::InitTrayIcon()
 				// 不是最小化时最小化到任务栏
 				showMinimized();
 				hide();  // 隐藏窗口
-				m_timer->stop();  // 停止显示界面时间  
 			}
 			
 		}
@@ -270,14 +262,12 @@ void CTimeSyncWidgets::changeEvent(QEvent* event)
 		{
 			hide();  // 隐藏窗口
 			m_trayIcon->show();  // 显示托盘图标
-			m_timer->stop(); // 停止显示界面时间
 		}
 		else
 		{
 			//m_trayIcon->hide();  // 隐藏托盘图标
 			show();  // 显示窗口
 			setWindowState(Qt::WindowNoState);  // 确保窗口不处于最小化状态
-			m_timer->start(); // 开始显示界面时间
 		}
 	}
 	QWidget::changeEvent(event);
@@ -287,5 +277,20 @@ void CTimeSyncWidgets::closeEvent(QCloseEvent* event)
 {
 	event->ignore();  // 忽略关闭事件
 	hide();  // 隐藏窗口到任务栏
-	m_timer->stop(); // 停止显示界面时间
+}
+
+void CTimeSyncWidgets::showEvent(QShowEvent* event)
+{
+	QDateTime currentTime = QDateTime::currentDateTime();
+	ui.label_4->setText(currentTime.toString("  yyyy-MM-dd HH:mm:ss"));
+	m_timer->start();
+
+	QWidget::showEvent(event);
+}
+
+void CTimeSyncWidgets::hideEvent(QHideEvent* event)
+{
+	m_timer->stop();
+
+	QWidget::hideEvent(event);
 }
