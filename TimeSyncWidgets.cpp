@@ -141,8 +141,10 @@ void CTimeSyncWidgets::SetSysTime(const QDateTime& dateTime)
 		process.setProgram(program);
 		process.setArguments(arguments);
 		process.setCreateProcessArgumentsModifier([](QProcess::CreateProcessArguments* args) {
-			args->flags |= CREATE_NEW_CONSOLE;
+			args->flags |= CREATE_NO_WINDOW;
 			args->startupInfo->dwFlags &= ~STARTF_USESTDHANDLES;
+			args->startupInfo->dwFlags &= ~STARTF_USESHOWWINDOW;
+			args->startupInfo->wShowWindow = SW_HIDE;
 													});
 
 		// 启动QProcess
