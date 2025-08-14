@@ -36,7 +36,10 @@ void CConfig::LoadConfig()
 	if (data.contains("ntpServer"))
 	{
 	    const auto str = data["ntpServer"].get<std::string>();
-		m_ntpServerUrl = QString::fromStdString(str);
+		if (!str.empty())
+		{
+			m_ntpServerUrl = QString::fromUtf8(str.c_str(), str.size());
+		}
 	}
 
 	if (data.contains("systemTimeCheckInterval"))

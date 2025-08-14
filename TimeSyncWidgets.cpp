@@ -135,7 +135,12 @@ void CTimeSyncWidgets::SetSysTime(const QDateTime& dateTime)
 		// 设置要执行的命令和参数
 		QString program = "cmd.exe";
 		QStringList arguments;
-		arguments << "/C" << "time" << dateTime.time().toString("hh:mm:ss");
+		//arguments << "/C" << "time" << dateTime.time().toString("hh:mm:ss");
+
+		arguments << "/C"
+			<< QString("date %1 && time %2")
+			.arg(dateTime.date().toString("yyyy-MM-dd"))
+			.arg(dateTime.time().toString("HH:mm:ss"));
 
 		// 设置QProcess以管理员身份运行
 		process.setProgram(program);
@@ -167,6 +172,9 @@ bool CTimeSyncWidgets::IsAutoStart()
 {
 	// 构造一个QSettings对象来操作注册表
 	QSettings registrySettings(AUTO_RUN_REGISTER_PATH, QSettings::NativeFormat);
+	if (registrySettings.status() != QSettings::NoError) {
+		return false;
+	}
 
 	// 获取注册表中的所有键
 	QStringList keys = registrySettings.allKeys();
