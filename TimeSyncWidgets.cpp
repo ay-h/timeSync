@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <Windows.h>
 #include <QDir>
+#include <QMessageBox>
 
 static const QString AUTO_RUN_REGISTER_PATH = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run";
 static const QString AUTO_RUN_VALUE_NAME = "timeSync";
@@ -173,7 +174,9 @@ bool CTimeSyncWidgets::IsAutoStart()
 {
 	// 构造一个QSettings对象来操作注册表
 	QSettings registrySettings(AUTO_RUN_REGISTER_PATH, QSettings::NativeFormat);
-	if (registrySettings.status() != QSettings::NoError) {
+	if (registrySettings.status() != QSettings::NoError)
+	{
+		QMessageBox::warning(nullptr, "操作失败", "检测开机自启动失败,无法打开注册表!");
 		return false;
 	}
 
@@ -188,7 +191,9 @@ bool CTimeSyncWidgets::IsAutoStart()
 bool CTimeSyncWidgets::SetAutoStart(bool isAutoStart)
 {
 	QSettings registerSetting(AUTO_RUN_REGISTER_PATH, QSettings::NativeFormat);
-	if (registerSetting.status() != QSettings::NoError) {
+	if (registerSetting.status() != QSettings::NoError)
+	{
+		QMessageBox::warning(nullptr, "操作失败", "设置开机自启动失败,无法打开注册表!");
 		return false;
 	}
 
@@ -202,7 +207,14 @@ bool CTimeSyncWidgets::SetAutoStart(bool isAutoStart)
 
 		// 检查写入是否成功
 		QString readValue = registerSetting.value(AUTO_RUN_VALUE_NAME).toString();
-		return  readValue == currentAppPath;
+		if (readValue == currentAppPath)
+		{
+			//QMessageBox::information(nullptr, "操作成功", "设置开机自启动成功!");
+			return true;
+		}
+
+		QMessageBox::warning(nullptr, "操作失败", "设置开机自启动失败!");
+		return  false;
 	}
 	else
 	{
@@ -222,6 +234,7 @@ bool CTimeSyncWidgets::SetAutoStart(bool isAutoStart)
 		}
 	}
 
+	QMessageBox::warning(nullptr, "操作失败", "设置失败!");
 	return false;
 }
 
