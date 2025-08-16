@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QSettings>
 #include <Windows.h>
+#include <QDir>
 
 static const QString AUTO_RUN_REGISTER_PATH = "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run";
 static const QString AUTO_RUN_VALUE_NAME = "timeSync";
@@ -176,33 +177,25 @@ bool CTimeSyncWidgets::IsAutoStart()
 		return false;
 	}
 
-	// 获取注册表中的所有键
-	QStringList keys = registrySettings.allKeys();
-
 	// 获取当前可执行程序路径
-	auto currentAppPath = "\"" + QCoreApplication::applicationFilePath().replace("/", "\\") + "\"";
-
-	// 遍历所有键，并检查注册表值是否存在
-	foreach(const QString & key, keys) 
-	{
-		QString value = registrySettings.value(key).toString();
-		if (value == currentAppPath) 
-		{
-			// 找到了
-			return true;
-		}
-	}
-
-	return false;
+	QString currentAppPath = "\"" + QDir::toNativeSeparators(QCoreApplication::applicationFilePath()) + "\"";
+	
+	// 获取注册表中对应的值
+	QString value = registrySettings.value(AUTO_RUN_VALUE_NAME).toString();
+	return (value == currentAppPath);
 }
 
 bool CTimeSyncWidgets::SetAutoStart(bool isAutoStart)
 {
 	QSettings registerSetting(AUTO_RUN_REGISTER_PATH, QSettings::NativeFormat);
+	if (registerSetting.status() != QSettings::NoError) {
+		return false;
+	}
+
 	if (isAutoStart)
 	{
 		// 获取当前可执行程序路径
-		auto currentAppPath = "\"" + QCoreApplication::applicationFilePath().replace("/", "\\") + "\"";
+		QString currentAppPath = "\"" + QDir::toNativeSeparators(QCoreApplication::applicationFilePath()) + "\"";
 
 		// 写入注册表
 		registerSetting.setValue(AUTO_RUN_VALUE_NAME, currentAppPath);
@@ -213,23 +206,20 @@ bool CTimeSyncWidgets::SetAutoStart(bool isAutoStart)
 	}
 	else
 	{
-		// 获取注册表中的所有键
-		QStringList keys = registerSetting.allKeys();
-
 		// 获取当前可执行程序路径
-		auto currentAppPath = "\"" + QCoreApplication::applicationFilePath().replace("/", "\\") + "\"";
+		QString currentAppPath = "\"" + QDir::toNativeSeparators(QCoreApplication::applicationFilePath()) + "\"";
 
-		// 遍历所有键，并检查注册表值是否存在
-		foreach(const QString & key, keys)
+		// 用 childKeys() 替代 allKeys()，避免递归异常
+		QStringList keys = registerSetting.childKeys();
+		for (const QString& key : keys)
 		{
 			QString value = registerSetting.value(key).toString();
 			if (value == currentAppPath)
 			{
-				// 找到了对应的值定移除该项
 				registerSetting.remove(key);
 				return !registerSetting.contains(key);
 			}
-		}		
+		}
 	}
 
 	return false;
